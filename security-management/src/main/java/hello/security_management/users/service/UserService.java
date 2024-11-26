@@ -28,4 +28,15 @@ public class UserService {
                 .roles(accountDto.getRoles())
                 .build();
     }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public AccountDto convertToAccountDto(Account account) {
+        return AccountDto.builder()
+                .id(account.getId())
+                .username(account.getUsername())
+                .password(account.getPassword())
+                .age(account.getAge())
+                .roles(account.getRoles())
+                .build();
+    }
 }

@@ -5,7 +5,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.*;
 
-@Builder
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,8 +19,8 @@ public class Account {
     private int age;
     private String roles;
 
-    public Account(Long id, String username, String password, int age, String roles) {
-        this.id = id;
+    @Builder
+    public Account(String username, String password, int age, String roles) {
         this.username = username;
         this.password = password;
         this.age = age;
