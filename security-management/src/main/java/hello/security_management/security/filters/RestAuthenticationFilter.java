@@ -1,0 +1,58 @@
+package hello.security_management.security.filters;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hello.security_management.domain.dto.AccountDto;
+import hello.security_management.security.token.RestAuthenticationToken;
+import hello.security_management.util.WebUtil;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.util.WebUtils;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // 어떤 요청에 대해서 해당 필터가 수행 되어야 할지 정의해야 한다.
+    public RestAuthenticationFilter() {
+        super(new AntPathRequestMatcher("/api/login", "POST"));
+    }
+
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+            throws AuthenticationException, IOException, ServletException {
+
+        // 비동기 통신 이면서, POST 방식인 경우에만 인증 처리.
+        if (!HttpMethod.POST.matches(request.getMethod()) || !WebUtil.isAjax(request)) {
+            throw new IllegalArgumentException("Authentication method is not supported");
+        }
+
+        ServletInputStream inputStream = request.getInputStream();
+        String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+
+        AccountDto accountDto = objectMapper.readValue(messageBody, AccountDto.class);
+
+        // 요청에 ID와 PW가 없는 경우.
+        if (!StringUtils.hasText(accountDto.getUsername()) || !StringUtils.hasText(accountDto.getPassword())) {
+            throw new AuthenticationServiceException("Username or Password is not provided");
+        }
+
+        // 인증 받기 전에 ID와 PW로 인증 객체 생성.
+        RestAuthenticationToken authenticationToken = new RestAuthenticationToken(accountDto.getUsername(), accountDto.getPassword());
+
+        // 인증 처리는 AuthenticationManager 에게 위임, 인증 객체 반환.
+        return getAuthenticationManager().authenticate(authenticationToken);
+    }
+}

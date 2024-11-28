@@ -16,6 +16,11 @@ import java.security.Principal;
 @Controller
 public class LoginController {
 
+    @GetMapping("/api/login")
+    public String restLogin() {
+        return "rest/login";
+    }
+
     @GetMapping("/login")
     public String login(@RequestParam(value = "error", required = false) String error,
                         @RequestParam(value = "exception", required = false) String exception,
