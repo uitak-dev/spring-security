@@ -10,9 +10,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -26,8 +31,21 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 어떤 요청에 대해서 해당 필터가 수행 되어야 할지 정의해야 한다.
-    public RestAuthenticationFilter() {
+    public RestAuthenticationFilter(HttpSecurity http) {
+        // 어떤 요청에 대해서 해당 필터가 수행 되어야 할지 정의해야 한다.
         super(new AntPathRequestMatcher("/api/login", "POST"));
+        setSecurityContextRepository(getSecurityContextRepository(http));
+    }
+
+    // 인증 정보를 세션에 저장하기 위해, HttpSessionSecurityContextRepository 를 추가한다.
+    private static SecurityContextRepository getSecurityContextRepository(HttpSecurity http) {
+        SecurityContextRepository securityContextRepository = http.getSharedObject(SecurityContextRepository.class);
+        if (securityContextRepository == null) {
+            securityContextRepository = new DelegatingSecurityContextRepository(
+                    new RequestAttributeSecurityContextRepository(), new HttpSessionSecurityContextRepository()
+            );
+        }
+        return securityContextRepository;
     }
 
     @Override
