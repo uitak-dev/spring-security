@@ -20,7 +20,7 @@ public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
 
     @Transactional
-    public Optional<Role> getRole(long id) {
+    public Optional<Role> getRole(Long id) {
         return roleRepository.findById(id);
     }
 
@@ -53,5 +53,16 @@ public class RoleServiceImpl implements RoleService {
                 .build();
 
         return role;
+    }
+
+    public RoleDto convertToRoleDto(Role role) {
+        RoleDto roleDto = RoleDto.builder()
+                .id(role.getId())
+                .roleName(role.getRoleName())
+                .roleDesc(role.getRoleDesc())
+                .isExpression(role.getIsExpression())
+                .build();
+
+        return roleDto;
     }
 }

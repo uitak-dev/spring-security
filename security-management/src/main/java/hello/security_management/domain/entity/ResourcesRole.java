@@ -22,4 +22,8 @@ public class ResourcesRole {
     @JoinColumn(name = "resources_id")
     private Resources resources;
 
+    public ResourcesRole(Role role, Resources resources) {
+        this.role = role;
+        this.resources = resources;
+    }
 }

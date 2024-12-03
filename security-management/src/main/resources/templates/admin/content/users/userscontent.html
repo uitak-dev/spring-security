@@ -44,8 +44,8 @@
                     <h6 style="color:#ffffff" th:text="${user.age}">나이</h6>
                 </td>
                 <td style="text-align: left;">
-                        <span th:each="role,iter:${user.userRoles}">
-                            <h6 style="color:#ffffff" th:text="${role.roleName}"></h6>
+                        <span th:each="accountRole,iter:${user.roles}">
+                            <h6 style="color:#ffffff" th:text="${accountRole.role.roleName}"></h6>
                         </span>
                 </td>
             </tr>

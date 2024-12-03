@@ -17,8 +17,10 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 public class UserManagementController {
+
 	private final UserManagementService userManagementService;
 	private final RoleService roleService;
+
 	@GetMapping(value="/admin/users")
 	public String getUsers(Model model) {
 

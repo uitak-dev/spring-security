@@ -28,12 +28,11 @@ public class Account {
     private Set<AccountRole> roles = new HashSet<>();
 
     @Builder
-    public Account(Long id, String username, String password, int age, Set<AccountRole> roles) {
+    public Account(Long id, String username, String password, int age) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.age = age;
-        this.roles = roles;
     }
 
     // 연관 관계 편의 메서드

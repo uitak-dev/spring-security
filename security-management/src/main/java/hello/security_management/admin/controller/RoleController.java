@@ -1,16 +1,14 @@
 package hello.security_management.admin.controller;
 
 import hello.security_management.admin.service.RoleService;
+import hello.security_management.domain.dto.RoleDto;
 import hello.security_management.domain.entity.Role;
-import hello.security_management.users.service.UserService;
-import io.security.springsecuritymaster.domain.dto.RoleDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-
 import java.util.List;
 
 @Controller
@@ -39,19 +37,27 @@ public class RoleController {
 
 	@PostMapping(value="/admin/roles")
 	public String createRole(RoleDto roleDto) {
-		ModelMapper modelMapper = new ModelMapper();
-		Role role = modelMapper.map(roleDto, Role.class);
+//		ModelMapper modelMapper = new ModelMapper();
+//		Role role = modelMapper.map(roleDto, Role.class);
+
+		Role role = roleService.convertToEntity(roleDto);
+
 		roleService.createRole(role);
 
 		return "redirect:/admin/roles";
 	}
 
 	@GetMapping(value="/admin/roles/{id}")
-	public String getRole(@PathVariable String id, Model model) {
-		Role role = roleService.getRole(Long.parseLong(id));
+	public String getRole(@PathVariable Long id, Model model) {
+//		Role role = roleService.getRole(Long.parseLong(id));
 
-		ModelMapper modelMapper = new ModelMapper();
-		RoleDto roleDto = modelMapper.map(role, RoleDto.class);
+		Role role = roleService.getRole(id)
+				.orElseThrow(() -> new IllegalArgumentException("role doesn't exist"));
+
+//		ModelMapper modelMapper = new ModelMapper();
+//		RoleDto roleDto = modelMapper.map(role, RoleDto.class);
+
+		RoleDto roleDto = roleService.convertToRoleDto(role);
 		model.addAttribute("roles", roleDto);
 
 		return "admin/rolesdetails";

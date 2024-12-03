@@ -25,16 +25,17 @@ public class Role implements Serializable {
 //    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
 //    private Set<AccountRole> accountRoleSet = new HashSet<>();
 
-    @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL)
+//    @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL)
 //    @OrderBy("orderNum desc")
-    private Set<ResourcesRole> resourcesSet = new LinkedHashSet<>();
+//    private Set<ResourcesRole> resourcesSet = new LinkedHashSet<>();
 
     @Builder
-    public Role(Long id, String roleName, String roleDesc, String isExpression, Set<ResourcesRole> resourcesSet) {
+    public Role(Long id, String roleName, String roleDesc, String isExpression) {
         this.id = id;
         this.roleName = roleName;
         this.roleDesc = roleDesc;
         this.isExpression = isExpression;
-        this.resourcesSet = resourcesSet;
     }
+
+
 }

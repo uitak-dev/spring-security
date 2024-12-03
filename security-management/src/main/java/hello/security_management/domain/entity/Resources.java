@@ -27,4 +27,17 @@ public class Resources implements Serializable {
     @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL)
     private Set<ResourcesRole> resourcesRoleSet = new HashSet<>();
 
+    @Builder
+    public Resources(Long id, String resourceName, String httpMethod, int orderNum, String resourceType) {
+        this.id = id;
+        this.resourceName = resourceName;
+        this.httpMethod = httpMethod;
+        this.orderNum = orderNum;
+        this.resourceType = resourceType;
+    }
+
+    // 연관 관계 편의 메서드
+    public void addRole(Role role) {
+        resourcesRoleSet.add(new ResourcesRole(role, this));
+    }
 }
