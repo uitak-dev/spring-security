@@ -40,4 +40,12 @@ public class Resources implements Serializable {
     public void addRole(Role role) {
         resourcesRoleSet.add(new ResourcesRole(role, this));
     }
+
+    public Set<Role> getRoleSet() {
+        Set<Role> ret = new HashSet<>();
+        for (ResourcesRole resourcesRole : resourcesRoleSet) {
+            ret.add(resourcesRole.getRole());
+        }
+        return ret;
+    }
 }

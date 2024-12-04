@@ -15,23 +15,20 @@ public class Account {
     @Column(name = "account_id")
     private Long id;
 
-    @Column
     private String username;
-
-    @Column
     private String password;
-
-    @Column
+    private String email;
     private int age;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
     private Set<AccountRole> roles = new HashSet<>();
 
     @Builder
-    public Account(Long id, String username, String password, int age) {
+    public Account(Long id, String username, String password, String email, int age) {
         this.id = id;
         this.username = username;
         this.password = password;
+        this.email = email;
         this.age = age;
     }
 

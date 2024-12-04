@@ -26,8 +26,7 @@ public class UserService {
 
     public void createUser(Account account) {
         Role role = roleRepository.findByRoleName("ROLE_USER");
-        Set<Role> roles = new HashSet<>();
-        roles.add(role);
+        account.addRole(role);
 
         userRepository.save(account);
     }

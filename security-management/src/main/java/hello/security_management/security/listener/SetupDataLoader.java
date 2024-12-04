@@ -35,6 +35,15 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
     private void setupData() {
         HashSet<Role> roles = new HashSet<>();
+
+        Role userRole = createRoleIfNotFound("ROLE_USER", "사용자");
+        roles.add(userRole);
+        createUserIfNotFound("user", "user@user.com", "pass", roles);
+
+        Role managerRole = createRoleIfNotFound("ROLE_MANAGER", "매니저");
+        roles.add(managerRole);
+        createUserIfNotFound("manager", "manager@manager.com", "pass", roles);
+
         Role adminRole = createRoleIfNotFound("ROLE_ADMIN", "관리자");
         roles.add(adminRole);
         createUserIfNotFound("admin", "admin@admin.com", "pass", roles);
@@ -47,6 +56,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
             role = Role.builder()
                     .roleName(roleName)
                     .roleDesc(roleDesc)
+                    .isExpression("N")
                     .build();
         }
         return roleRepository.save(role);
@@ -59,6 +69,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
             account = Account.builder()
                     .username(userName)
                     .password(passwordEncoder.encode(password))
+                    .email(email)
                     .build();
 
             for (Role role : roleSet) {
