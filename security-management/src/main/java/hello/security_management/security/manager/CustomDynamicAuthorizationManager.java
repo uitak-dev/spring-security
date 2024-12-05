@@ -7,11 +7,13 @@ import hello.security_management.security.mapper.PersistentUrlRoleMapper;
 import hello.security_management.security.service.DynamicAuthorizationService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.authorization.AuthorizationResult;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 public class CustomDynamicAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 
     private final HandlerMappingIntrospector handlerMappingIntrospector;
+    private final RoleHierarchyImpl roleHierarchy;
+
     private final ResourcesRepository resourcesRepository;
     private final RoleRepository roleRepository;
 
@@ -64,6 +68,7 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
 
         // "ROLE_" 로 시작하는 경우, AuthorityAuthorizationManager 를 통해 권한 심사.
         // 그 외의 경우 표현식 기반의 인가 매니저를 사용해서 권한 심사를 진행한다.
+        /*
         if (role != null) {
             if (role.startsWith("ROLE")) {
                 return AuthorityAuthorizationManager.hasAuthority(role);
@@ -72,8 +77,24 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
                 return new WebExpressionAuthorizationManager(role);
             }
         }
-
         return null;
+         */
+
+        if (role.startsWith("ROLE")) {
+            AuthorityAuthorizationManager<RequestAuthorizationContext> authorizationManager = AuthorityAuthorizationManager.hasAuthority(role);
+            authorizationManager.setRoleHierarchy(roleHierarchy);
+
+            return authorizationManager;
+        }
+        else {
+            DefaultHttpSecurityExpressionHandler handler = new DefaultHttpSecurityExpressionHandler();
+            handler.setRoleHierarchy(roleHierarchy);
+
+            WebExpressionAuthorizationManager authorizationManager = new WebExpressionAuthorizationManager(role);
+            authorizationManager.setExpressionHandler(handler);
+
+            return authorizationManager;
+        }
     }
 
     @Override
