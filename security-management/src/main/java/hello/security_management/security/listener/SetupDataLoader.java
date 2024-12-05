@@ -1,7 +1,9 @@
 package hello.security_management.security.listener;
 
+import hello.security_management.admin.repository.ResourcesRepository;
 import hello.security_management.admin.repository.RoleRepository;
 import hello.security_management.domain.entity.Account;
+import hello.security_management.domain.entity.Resources;
 import hello.security_management.domain.entity.Role;
 import hello.security_management.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +21,11 @@ import java.util.Set;
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
 
     private boolean alreadySetup = false;
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ResourcesRepository resourcesRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -34,29 +39,41 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     }
 
     private void setupData() {
-        HashSet<Role> roles = new HashSet<>();
+        Set<Role> roles = new HashSet<>();
 
-        Role userRole = createRoleIfNotFound("ROLE_USER", "사용자");
-        roles.add(userRole);
+        Role userRole = createRoleIfNotFound("ROLE_USER", "사용자", "N");
+        Role managerRole = createRoleIfNotFound("ROLE_MANAGER", "매니저", "N");
+        Role dbaRole = createRoleIfNotFound("ROLE_DBA", "DB 관리자", "N");
+        Role adminRole = createRoleIfNotFound("ROLE_ADMIN", "관리자", "N");
+        Role expressionRole = createRoleIfNotFound("hasRole('DBA') or hasRole('ADMIN')", "총괄 관리자 및 DB 관리자", "Y");
+
+        roles = Set.of(userRole);
         createUserIfNotFound("user", "user@user.com", "pass", roles);
 
-        Role managerRole = createRoleIfNotFound("ROLE_MANAGER", "매니저");
-        roles.add(managerRole);
+        roles = Set.of(userRole, managerRole);
         createUserIfNotFound("manager", "manager@manager.com", "pass", roles);
 
-        Role adminRole = createRoleIfNotFound("ROLE_ADMIN", "관리자");
-        roles.add(adminRole);
+        roles = Set.of(userRole, dbaRole);
+        createUserIfNotFound("dba", "dba@dba.com", "pass", roles);
+
+        roles = Set.of(userRole, managerRole, dbaRole, adminRole);
         createUserIfNotFound("admin", "admin@admin.com", "pass", roles);
+
+        //
+        createResourcesIfNotFound("/user", "url", 0, userRole);
+        createResourcesIfNotFound("/manager", "url", 1, managerRole);
+        createResourcesIfNotFound("/admin/**", "url", 2, adminRole);
+        createResourcesIfNotFound("/db", "url", 3, expressionRole);
     }
 
-    public Role createRoleIfNotFound(String roleName, String roleDesc) {
+    public Role createRoleIfNotFound(String roleName, String roleDesc, String isExpression) {
         Role role = roleRepository.findByRoleName(roleName);
 
         if (role == null) {
             role = Role.builder()
                     .roleName(roleName)
                     .roleDesc(roleDesc)
-                    .isExpression("N")
+                    .isExpression(isExpression)
                     .build();
         }
         return roleRepository.save(role);
@@ -77,5 +94,22 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
             }
         }
         userRepository.save(account);
+    }
+
+    public void createResourcesIfNotFound(String name, String type, int orderNum, Role role) {
+        Resources resources = resourcesRepository.findByResourceName(name);
+
+        if (resources == null) {
+            resources = Resources.builder()
+                    .resourceName(name)
+                    .resourceType(type)
+                    .orderNum(orderNum)
+                    .build();
+
+            Role findRole = createRoleIfNotFound(role.getRoleName(), role.getRoleDesc(), role.getIsExpression());
+            resources.addRole(findRole);
+        }
+
+        resourcesRepository.save(resources);
     }
 }

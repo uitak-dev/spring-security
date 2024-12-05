@@ -7,6 +7,7 @@ import hello.security_management.domain.dto.ResourcesDto;
 import hello.security_management.domain.entity.Resources;
 import hello.security_management.domain.entity.ResourcesRole;
 import hello.security_management.domain.entity.Role;
+import hello.security_management.security.manager.CustomDynamicAuthorizationManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -26,6 +27,8 @@ public class ResourcesServiceImpl implements ResourcesService {
     private final ResourcesRepository resourcesRepository;
     private final RoleRepository roleRepository;
 
+    private final CustomDynamicAuthorizationManager authorizationManager;
+
     @Transactional
     public Optional<Resources> getResources(Long id) {
         return resourcesRepository.findById(id);
@@ -39,11 +42,13 @@ public class ResourcesServiceImpl implements ResourcesService {
     @Transactional
     public void createResources(Resources resources){
         resourcesRepository.save(resources);
+        authorizationManager.reload();
     }
 
     @Transactional
     public void deleteResources(long id) {
         resourcesRepository.deleteById(id);
+        authorizationManager.reload();
     }
 
     public Resources convertToEntity(ResourcesDto resourcesDto) {
@@ -72,9 +77,11 @@ public class ResourcesServiceImpl implements ResourcesService {
                 .httpMethod(resources.getHttpMethod())
                 .build();
 
+        Set<Role> roleSet = new HashSet<>();
         for (ResourcesRole resourcesRole : resources.getResourcesRoleSet()) {
-            resourcesDto.getRoleSet().add(resourcesRole.getRole());
+            roleSet.add(resourcesRole.getRole());
         }
+        resourcesDto.setRoleSet(roleSet);
 
         return resourcesDto;
     }

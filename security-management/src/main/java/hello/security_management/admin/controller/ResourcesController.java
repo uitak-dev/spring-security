@@ -78,14 +78,12 @@ public class ResourcesController {
 		Resources resources = resourcesService.getResources(id)
 				.orElseThrow(() -> new IllegalArgumentException("resources doesn't exist"));
 
-
-//		List<String> myRoles = resources.getRoleSet().stream().map(role -> role.getRoleName()).toList();
 		List<String> myRoles = resources.getResourcesRoleSet().stream()
 				.map(resourcesRole -> resourcesRole.getRole().getRoleName()).toList();
 		model.addAttribute("myRoles", myRoles);
 
-//		ModelMapper modelMapper = new ModelMapper();
-//		ResourcesDto resourcesDto = modelMapper.map(resources, ResourcesDto.class);
+		System.out.println("myRoles: " + myRoles.toString());
+
 		ResourcesDto resourcesDto = resourcesService.convertToResourcesDto(resources);
 		model.addAttribute("resources", resourcesDto);
 

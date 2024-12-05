@@ -1,6 +1,7 @@
 package hello.security_management.security.manager;
 
 import hello.security_management.admin.repository.ResourcesRepository;
+import hello.security_management.admin.repository.RoleRepository;
 import hello.security_management.security.mapper.MapBasedUrlRoleMapper;
 import hello.security_management.security.mapper.PersistentUrlRoleMapper;
 import hello.security_management.security.service.DynamicAuthorizationService;
@@ -17,6 +18,7 @@ import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcherEntry;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
@@ -29,16 +31,23 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
 
     private final HandlerMappingIntrospector handlerMappingIntrospector;
     private final ResourcesRepository resourcesRepository;
+    private final RoleRepository roleRepository;
 
     private List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings;
 
     private static final AuthorizationDecision ACCESS = new AuthorizationDecision(true);
 
+    private DynamicAuthorizationService dynamicAuthorizationService;
+
     @PostConstruct
     public void mapping() {
-        DynamicAuthorizationService dynamicAuthorizationService =
-                new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
+        dynamicAuthorizationService =
+                new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository, roleRepository));
 
+        setMapping();
+    }
+
+    private void setMapping() {
         mappings = dynamicAuthorizationService.getUrlRoleMappings()
                 .entrySet()
                 .stream()
@@ -56,7 +65,7 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
         // "ROLE_" 로 시작하는 경우, AuthorityAuthorizationManager 를 통해 권한 심사.
         // 그 외의 경우 표현식 기반의 인가 매니저를 사용해서 권한 심사를 진행한다.
         if (role != null) {
-            if (role.startsWith("ROLE_")) {
+            if (role.startsWith("ROLE")) {
                 return AuthorityAuthorizationManager.hasAuthority(role);
             }
             else {
@@ -89,4 +98,8 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
         AuthorizationManager.super.verify(authentication, object);
     }
 
+    public synchronized void reload() {
+        mappings.clear();
+        setMapping();
+    }
 }
